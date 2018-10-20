@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate lazy_static;
 
+extern crate futures;
 extern crate serde;
 extern crate config;
 extern crate tokio;
@@ -10,3 +11,4 @@ extern crate bytes;
 
 pub mod codec;
 pub mod settings;
+pub mod interpreter;

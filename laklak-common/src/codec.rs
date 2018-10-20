@@ -50,11 +50,7 @@ impl Encoder for ChatCodec {
 
         as_string.map(|s| {
             let msg_ref: &[u8] = s.as_ref();
-
-            dst.reserve(msg_ref.len() + 2);
-            dst.put_u16_be(msg_ref.len() as u16);
             dst.put(msg_ref);
-
             ()
         })
     }
