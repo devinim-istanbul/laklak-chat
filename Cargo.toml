@@ -1,0 +1,5 @@
+[workspace]
+members = [
+    "laklak-common",
+    "laklak-chat-server"
+]

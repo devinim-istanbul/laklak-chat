@@ -1,0 +1,4 @@
+**/target
+**/*.rs.bk
+**/config/local.toml
+.DS_Store

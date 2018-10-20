@@ -1,0 +1,16 @@
+[package]
+name = "laklak-chat-server"
+version = "0.1.0"
+authors = ["Yalin Gunayer <yalin.gunayer@gmail.com>"]
+
+[dependencies]
+laklak-common = { version = "0.1.0", path = "../laklak-common" }
+actix = "0.7"
+tokio = "0.1.11"
+tokio-io = "0.1.9"
+tokio-core = "0.1.17"
+tokio-codec = "0.1.1"
+# lazy_static = "1.1.0"
+# bytes = "0.4.10"
+serde = "1.0"
+serde_derive = "1.0"
