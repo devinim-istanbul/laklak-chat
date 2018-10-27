@@ -46,7 +46,7 @@ impl MessageInterpreter {
 
         //from
 
-        from.for_each(|b| self.read(b));
+        //from.for_each(|b| self.read(b));
 
         true
     }
