@@ -13,6 +13,8 @@ extern crate regex;
 use std::io::{BufReader, BufRead};
 //use std::net::{SocketAddr, ToSocketAddrs, TcpListener, TcpStream};
 use std::net::{SocketAddr, ToSocketAddrs};
+use std::error::Error;
+use std::ops::Range;
 use tokio_core::net::{TcpListener, TcpStream};
 use tokio_codec::{FramedRead, LinesCodec};
 use laklak_common::settings::{SettingsLoader};
@@ -43,6 +45,7 @@ enum Command {
 }
 
 #[derive(Message)]
+#[derive(Debug)]
 struct SendMessage {
     sender: String,
     recipient: String,
@@ -50,6 +53,7 @@ struct SendMessage {
 }
 
 #[derive(Message)]
+#[derive(Debug)]
 struct Authenticate {
     token: String
 }
@@ -122,22 +126,32 @@ impl ChatIOActor {
     }
 }
 
+fn parse_command<'s>(command_string: &'s String) -> Result<Option<Command>, String> {
+    match RE_ALL.matches(command_string).into_iter().next() {
+        Some(idx) => {
+            let matched_pattern = PATTERNS[idx];
+
+            match Regex::new(matched_pattern).unwrap().captures(command_string) {
+                Some(captures) => {
+                    let command_key = captures.get(1).unwrap().as_str();
+                    let arg_indices = [2..command_key.len()];
+                    println!("KEKEKEKE {:?}", command_key);
+                    Ok(None)
+                },
+                None => Err("Parser failure".to_string())
+            }
+        },
+        None => Err("Invalid command string".to_string())
+    }
+}
+
 impl Handler<InboundMessage> for ChatIOActor {
     type Result = ();
 
     fn handle(&mut self, msg: InboundMessage, _: &mut Self::Context) {
         let msg = &msg.0;
-
-        let match_set = RE_ALL.matches(msg)
-            .into_iter()
-            .next()
-            .map(|idx| PATTERNS[idx])
-            .map(|pattern| Regex::new(pattern).unwrap().captures(msg).unwrap()); // ugly as fuck, refactor this
-
-        match match_set {
-            Some(matches) => println!("Matched {:?}", matches),
-            None => println!("Invalid command string")
-        }
+        let command = parse_command(msg);
+        println!("Received command: {:?}", command);
     }
 }
 
