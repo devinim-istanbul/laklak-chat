@@ -1,4 +1,6 @@
-#[derive(Debug, PartialEq, Eq)]
+use actix::prelude::*;
+
+#[derive(Debug, Message, PartialEq, Eq)]
 pub enum Command {
     Authenticate {
         token: String

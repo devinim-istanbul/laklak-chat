@@ -15,6 +15,7 @@ extern crate tokio_io;
 extern crate tokio_core;
 extern crate bytes;
 extern crate base64;
+extern crate actix;
 
 pub mod settings;
 pub mod commands;
