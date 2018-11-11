@@ -110,7 +110,7 @@ impl ChatIOActor {
             let codec = LinesCodec::new_with_max_length(65535);
             let buf_reader = BufReader::new(stream);
             let reader = FramedRead::new(buf_reader, codec);
-            
+
             let message_stream = reader
                 .map_err(|e| println!("Failed to read from stream {:?}", e))
                 .map(move |st| InboundMessage(st));
@@ -205,7 +205,7 @@ fn main() {
     let addr = listen_url.to_socket_addrs().unwrap().next().unwrap();
 
     let listener = TcpListener::bind2(&addr).expect("Failed to listen");
-    
+
     let exit_code = System::run(move || {
         let connections = listener.incoming()
             .map_err(|e| {

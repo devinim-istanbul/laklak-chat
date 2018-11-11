@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["Yalin <yalin.gunayer@gmail.com>"]
 
 [dependencies]
+laklak-command-codec = { version = "0.1.0", path = "../laklak-command-codec" }
 config = "0.9"
 tokio = "0.1.11"
 tokio-io = "0.1.9"
