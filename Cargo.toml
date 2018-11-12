@@ -1,5 +1,6 @@
 [workspace]
 members = [
     "laklak-common",
-    "laklak-chat-server"
+    "laklak-chat-server",
+    "laklak-command-builder"
 ]
