@@ -77,3 +77,8 @@ pub enum ParserFailure {
     Base64DecodeError(base64::DecodeError),
     Utf8EncodingError(std::string::FromUtf8Error)
 }
+
+// Side note, having structs be responsible from how they are encoded seems logical.
+// As for decoding, I think a respective actor should be spawn right after decode,
+// without any exposure to the rest of the code to keep side-effects in check.
+// Thus we can move on with the spawned actor forwarding the result to its respective queue.
