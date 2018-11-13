@@ -1,0 +1,7 @@
+[package]
+name = "laklak-commands"
+version = "0.1.0"
+authors = ["Berkan Yavri <berkan.yavri@deliveryhero.com>"]
+
+[dependencies]
+base64 = "0.10.0"
