@@ -16,7 +16,7 @@ impl Actor for ChatServer {
 impl Handler<ConnectionRequest> for ChatServer {
     type Result = ();
 
-    fn handle(&mut self, session: ConnectionRequest, ctx: &mut Self::Context) {
+    fn handle(&mut self, session: ConnectionRequest, _: &mut Self::Context) {
         println!("Accepted connection from {:?}, launching a new chat session", session.1);
         ChatIOActor::spawn(session.0, session.1);
     }

@@ -1,7 +1,5 @@
 use super::*;
 
-use super::chat_io::{ChatIOActor};
-
 // CHAT I/O
 #[derive(Message)]
 #[derive(Debug)]

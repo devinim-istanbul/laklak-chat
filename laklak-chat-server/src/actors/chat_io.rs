@@ -3,19 +3,31 @@ use super::*;
 use super::chat::{ChatActor};
 use super::messages::{ChatMessage, Introduction};
 
+type ChatSink = futures::stream::SplitSink<tokio_codec::Framed<tokio_core::net::TcpStream, tokio_codec::LinesCodec>>;
+
+fn serialize_command(cmd: Command) -> Option<String> {
+    match cmd {
+        Command::Ping {} => Some("PING\n".to_string()),
+        Command::Pong {} => Some("PONG\n".to_string()),
+        _ => None
+    }
+}
+
 /**
  * The actor responsible for handling I/O for an individual chat actor.
  */
 pub struct ChatIOActor {
     id: String,
-    chat_actor: Addr<ChatActor>
+    chat_actor: Addr<ChatActor>,
+    writer: ChatSink
 }
 
 impl ChatIOActor {
-    pub fn new(chat_actor: Addr<ChatActor>) -> ChatIOActor {
+    pub fn new(chat_actor: Addr<ChatActor>, writer: ChatSink) -> ChatIOActor {
         ChatIOActor {
             id: nanoid::simple(),
-            chat_actor
+            chat_actor,
+            writer
         }
     }
 
@@ -32,16 +44,12 @@ impl ChatIOActor {
             ctx.add_message_stream(message_stream);
 
             let chat_actor = ChatActor::new(addr);
-            let io_actor = ChatIOActor::new(chat_actor.start());
+            let io_actor = ChatIOActor::new(chat_actor.start(), writer);
 
             println!("Initializing I/O handler for {:?}", addr);
 
             io_actor
         })
-    }
-    
-    fn reply_with(&mut self, cmd: Command) {
-        //self.writer.send("PING\n".to_string());
     }
 }
 
@@ -63,14 +71,22 @@ impl Handler<ChatMessage> for ChatIOActor {
                 match parse_command(CompleteStr(&msg)) {
                     Ok(result) => {
                         let command = result.1;
-                        self.chat_actor.do_send(command)
+                        self.chat_actor
+                            .send(command)
+                            .and_then(|response| {
+                                println!("Actor replied with {:?}", response);
+                                Ok(())
+                            });
                     },
                     Err(e) => println!("Failed to parse command string {:?} due to {:?}", msg, e)
                 }
             },
 
             ChatMessage::Outbound(cmd) => {
-                self.reply_with(cmd);
+                let writer = self.writer;
+                let as_string = serialize_command(cmd);
+
+                as_string.map(|s| writer.send(s));
             }
         }        
     }

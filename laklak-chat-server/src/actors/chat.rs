@@ -1,5 +1,7 @@
 use super::*;
 
+use actix::MessageResult;
+
 use super::chat_io::{ChatIOActor};
 use super::messages::{Introduction, ChatMessage};
 
@@ -8,23 +10,14 @@ use super::messages::{Introduction, ChatMessage};
  */
 pub struct ChatActor {
     id: String,
-    addr: SocketAddr,
-    io_actor: Option<Addr<ChatIOActor>>
+    addr: SocketAddr
 }
 
 impl ChatActor {
     pub fn new(addr: SocketAddr) -> ChatActor {
         ChatActor {
             id: nanoid::simple(),
-            addr,
-            io_actor: None
-        }
-    }
-
-    fn reply_with(&mut self, cmd: Command) {
-        match self.io_actor {
-            Some(ref actor) => { actor.do_send(ChatMessage::Outbound(cmd)); },
-            None => println!("I/O Actor not yet met, reply not sent")
+            addr
         }
     }
 }
@@ -43,24 +36,23 @@ impl Actor for ChatActor {
     }
 }
 
-impl Handler<Introduction<ChatIOActor>> for ChatActor {
-    type Result = ();
-
-    fn handle(&mut self, intro: Introduction<ChatIOActor>, _: &mut Self::Context) {
-        self.io_actor = Some(intro.0);
-    }
-}
-
 impl Handler<Command> for ChatActor {
-    type Result = ();
+    type Result = Command;
 
-    fn handle(&mut self, cmd: Command, _: &mut Self::Context) {
+    fn handle(&mut self, cmd: Command, _: &mut Self::Context) -> MessageResult<Command> {
         println!("Received command {:?}", cmd);
 
-        match cmd {
-            Command::Ping {} => self.reply_with(Command::Pong {}),
-            Command::Pong {} => self.reply_with(Command::Ping {}),
-            _ => ()
-        }
+        let result = match cmd {
+            Command::Ping {} => Command::Pong {},
+            Command::Pong {} => Command::Ping {},
+            _ => {
+                let error_code = ErrorCode::InvalidCommand("asda".to_string());
+                Command::Error(error_code, "Invalid command string")
+            }
+        };
+
+        let keke: Self::Result = MessageResult(result);
+
+        keke
     }
 }
