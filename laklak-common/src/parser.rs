@@ -58,38 +58,54 @@ named!(arg_base64_encoded<CompleteStr, String>,
     map_res!(take_while_m_n!(1, 65536, is_valid_base64_char), decode_base64)
 );
 
-named!(pub cmd_ping<CompleteStr, Command>,
-    do_parse!(
-        tag!("PING") >>
-        (Command::Ping { })
-    )
-);
+macro_rules! command {
+    ($name:ident, $tag:expr, $parent:ident::$type:ident) => {
+        named!($name<CompleteStr, $parent>,
+            do_parse!(
+                tag!($tag) >>
+                ($parent::$type { })
+            )
+        );
+    };
 
-named!(pub cmd_pong<CompleteStr, Command>,
-    do_parse!(
-        tag!("PONG") >>
-        (Command::Pong { })
-    )
-);
+    ($name:ident, $tag:expr, $parent:ident::$type:ident, $($key:ident: $arg_type:ident),+) => {
+        named!($name<CompleteStr, $parent>,
+            do_parse!(
+                tag!($tag) >>
+                $(char!('|') >> $key: $arg_type)>>+ >>
+                ($parent::$type { $($key),+ })
+            )
+        );
+    };
 
-named!(pub cmd_authenticate<CompleteStr, Command>,
-    do_parse!(
-        tag!("AUTH") >>
-        char!('|') >>
-        token: arg_idlike >>
-        (Command::Authenticate { token })
-    )
-);
+    (pub $name:ident, $tag:expr, $parent:ident::$type:ident) => {
+        named!(pub $name<CompleteStr, $parent>,
+            do_parse!(
+                tag!($tag) >>
+                ($parent::$type { })
+            )
+        );
+    };
 
-named!(pub cmd_send_message<CompleteStr, Command>,
-    do_parse!(
-        tag!("SEND") >>
-        char!('|') >>
-        recipient: arg_idlike >>
-        char!('|') >>
-        message: arg_base64_encoded >>
-        (Command::SendMessage { recipient, message })
-    )
+    (pub $name:ident, $tag:expr, $parent:ident::$type:ident, $($key:ident: $arg_type:ident),+) => {
+        named!(pub $name<CompleteStr, $parent>,
+            do_parse!(
+                tag!($tag) >>
+                $(char!('|') >> $key: $arg_type)>>+ >>
+                ($parent::$type { $($key),+ })
+            )
+        );
+    };
+}
+
+command!(pub cmd_ping, "PING", Command::Ping);
+command!(pub cmd_pong, "PONG", Command::Pong);
+command!(pub cmd_send_message, "SEND", Command::SendMessage,
+    recipient: arg_idlike,
+    message: arg_base64_encoded
+);
+command!(pub cmd_authenticate, "AUTH", Command::Authenticate,
+    token: arg_idlike
 );
 
 named!(pub parse_command<CompleteStr, Command>,
