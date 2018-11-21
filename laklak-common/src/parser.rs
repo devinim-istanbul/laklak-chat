@@ -116,3 +116,38 @@ named!(pub parse_command<CompleteStr, Command>,
         complete!(cmd_pong)
     )
 );
+
+macro_rules! command_parsers {
+    (
+        $parent:ident, {
+            $(
+                $tag:expr => $name:ident {
+                    $($field:ident: $type:ident @ $arg_type:ident),*
+                }
+            ),*
+        }
+    ) => {
+        pub enum $parent {
+            $(
+                $name {
+                    $($field: $type),*
+                }
+            ),*
+        }
+
+        $(
+            named!(cmd_$name<CompleteStr, $parent>,
+                do_parse!(
+                    tag!($tag) >>
+                    $(char!('|') >> $field: $arg_type)>>* >>
+                    ($parent::$name { $($field),* })
+                )
+            )
+        );*
+    };
+}
+
+command_parsers!(Semiz, {
+    "ASDF" => Asdf { },
+    "SDFG" => Sdf { kek: String @ arg_idlike }
+});
