@@ -17,6 +17,8 @@ extern crate bytes;
 extern crate base64;
 extern crate actix;
 
+#[macro_use]
+pub mod parser;
+
 pub mod settings;
 pub mod commands;
-pub mod parser;

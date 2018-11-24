@@ -2,29 +2,31 @@ use actix::prelude::*;
 
 use actix::dev::{MessageResponse, ResponseChannel};
 
+use super::parser::*;
+
 #[derive(Debug, Message, PartialEq, Eq)]
 pub enum ErrorCode {
     InvalidCommand(String),
     Unauthenticated
 }
 
-#[derive(Debug, Message, PartialEq, Eq)]
-pub enum Command {
-    Authenticate {
-        token: String
-    },
+command_parsers!(
+    #[derive(Debug, Message, PartialEq, Eq)]
+    pub enum Command {
+        ["PING"] Ping { },
 
-    SendMessage {
-        recipient: String,
-        message: String
-    },
+        ["PONG"] Pong { },
 
-    Ping { },
+        ["AUTH"] Authenticate {
+            [arg_idlike] token: String
+        },
 
-    Pong { },
-
-    Error(ErrorCode, &'static str)
-}
+        ["SEND"] SendMessage {
+            [arg_idlike] recipient: String,
+            [arg_base64_encoded] message: String
+        }
+    }
+);
 
 
 impl<A, M> MessageResponse<A, M> for Command

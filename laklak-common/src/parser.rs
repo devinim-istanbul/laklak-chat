@@ -59,8 +59,8 @@ named!(arg_base64_encoded<CompleteStr, String>,
 );
 
 macro_rules! command {
-    ($name:ident, $tag:expr, $parent:ident::$type:ident) => {
-        named!($name<CompleteStr, $parent>,
+    ($tag:expr => $parent:ident::$name:ident) => {
+        named!(cmd_$name<CompleteStr, $parent>,
             do_parse!(
                 tag!($tag) >>
                 ($parent::$type { })
@@ -68,8 +68,14 @@ macro_rules! command {
         );
     };
 
-    ($name:ident, $tag:expr, $parent:ident::$type:ident, $($key:ident: $arg_type:ident),+) => {
-        named!($name<CompleteStr, $parent>,
+    (
+        $tag:expr => $parent:ident::$name:ident {
+            $(
+                $field:ident: $type:ident @ $arg_type:ident
+            ),*
+        }
+    ) => {
+        named!(cmd_$name<CompleteStr, $parent>,
             do_parse!(
                 tag!($tag) >>
                 $(char!('|') >> $key: $arg_type)>>+ >>
@@ -78,8 +84,8 @@ macro_rules! command {
         );
     };
 
-    (pub $name:ident, $tag:expr, $parent:ident::$type:ident) => {
-        named!(pub $name<CompleteStr, $parent>,
+    (pub $tag:expr => $parent:ident::$name:ident) => {
+        named!(cmd_$name<CompleteStr, $parent>,
             do_parse!(
                 tag!($tag) >>
                 ($parent::$type { })
@@ -87,8 +93,14 @@ macro_rules! command {
         );
     };
 
-    (pub $name:ident, $tag:expr, $parent:ident::$type:ident, $($key:ident: $arg_type:ident),+) => {
-        named!(pub $name<CompleteStr, $parent>,
+    (
+        pub $tag:expr => $parent:ident::$name:ident {
+            $(
+                $field:ident: $type:ident @ $arg_type:ident
+            ),*
+        }
+    ) => {
+        named!(cmd_$name<CompleteStr, $parent>,
             do_parse!(
                 tag!($tag) >>
                 $(char!('|') >> $key: $arg_type)>>+ >>
@@ -98,35 +110,19 @@ macro_rules! command {
     };
 }
 
-command!(pub cmd_ping, "PING", Command::Ping);
-command!(pub cmd_pong, "PONG", Command::Pong);
-command!(pub cmd_send_message, "SEND", Command::SendMessage,
-    recipient: arg_idlike,
-    message: arg_base64_encoded
-);
-command!(pub cmd_authenticate, "AUTH", Command::Authenticate,
-    token: arg_idlike
-);
-
-named!(pub parse_command<CompleteStr, Command>,
-    alt!(
-        complete!(cmd_authenticate) |
-        complete!(cmd_send_message) |
-        complete!(cmd_ping) |
-        complete!(cmd_pong)
-    )
-);
-
+#[macro_export]
 macro_rules! command_parsers {
     (
-        $parent:ident, {
+        #[derive($($derive:ident),*)]
+        pub enum $parent:ident {
             $(
-                $tag:expr => $name:ident {
-                    $($field:ident: $type:ident @ $arg_type:ident),*
+                [$tag:expr] $name:ident {
+                    $([$arg_type:ident] $field:ident: $type:ident),*
                 }
             ),*
         }
     ) => {
+        #[derive($($derive),*)]
         pub enum $parent {
             $(
                 $name {
@@ -134,20 +130,5 @@ macro_rules! command_parsers {
                 }
             ),*
         }
-
-        $(
-            named!(cmd_$name<CompleteStr, $parent>,
-                do_parse!(
-                    tag!($tag) >>
-                    $(char!('|') >> $field: $arg_type)>>* >>
-                    ($parent::$name { $($field),* })
-                )
-            )
-        );*
     };
 }
-
-command_parsers!(Semiz, {
-    "ASDF" => Asdf { },
-    "SDFG" => Sdf { kek: String @ arg_idlike }
-});
