@@ -1,10 +1,5 @@
 use super::*;
 
-use actix::MessageResult;
-
-use super::chat_io::{ChatIOActor};
-use super::messages::{Introduction, ChatMessage};
-
 /**
  * An actor that handles the communication for a single chat session.
  */
@@ -39,20 +34,16 @@ impl Actor for ChatActor {
 impl Handler<Command> for ChatActor {
     type Result = Command;
 
-    fn handle(&mut self, cmd: Command, _: &mut Self::Context) -> MessageResult<Command> {
+    fn handle(&mut self, cmd: Command, _: &mut Self::Context) -> Command {
         println!("Received command {:?}", cmd);
 
-        let result = match cmd {
+        match cmd {
             Command::Ping {} => Command::Pong {},
             Command::Pong {} => Command::Ping {},
             _ => {
                 let error_code = ErrorCode::InvalidCommand("asda".to_string());
                 Command::Error(error_code, "Invalid command string")
             }
-        };
-
-        let keke: Self::Result = MessageResult(result);
-
-        keke
+        }
     }
 }

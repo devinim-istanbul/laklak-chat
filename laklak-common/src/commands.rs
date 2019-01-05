@@ -8,7 +8,7 @@ pub enum ErrorCode {
     Unauthenticated
 }
 
-#[derive(Debug, Message, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Command {
     Authenticate {
         token: String
@@ -26,6 +26,9 @@ pub enum Command {
     Error(ErrorCode, &'static str)
 }
 
+impl Message for Command {
+    type Result = Command;
+}
 
 impl<A, M> MessageResponse<A, M> for Command
 where

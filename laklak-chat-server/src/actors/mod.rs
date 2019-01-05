@@ -1,4 +1,5 @@
 extern crate nanoid;
+extern crate tokio;
 
 use std;
 use futures;
@@ -21,5 +22,4 @@ use laklak_common::commands::*;
 
 pub mod messages;
 pub mod chat;
-pub mod chat_io;
 pub mod chat_server;
